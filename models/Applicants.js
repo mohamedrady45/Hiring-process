@@ -47,6 +47,7 @@ const applicationSchema = new mongoose.Schema({
   },
 });
 
+
 const Applicant = mongoose.model('Applicant', applicantSchema);
 const Application = mongoose.model('Application', applicationSchema);
 
