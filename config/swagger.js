@@ -11,7 +11,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'https://daffodil-wary-straw.glitch.me', 
+        url: 'http://localhost:3000', 
       },
     ],
     components: {

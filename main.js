@@ -2,6 +2,7 @@ const express = require("express");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
 const applicantRouter = require("./routers/applicantRouter");
+const trainingRouter = require("./routers/trainingRouter");
 const userRouter = require("./routers/userRouter");
 const { swaggerUi, swaggerDocs } = require("./config/swagger");
 const bodyParser = require("body-parser");
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", userRouter);
 
+app.use("/api/schedule", trainingRouter);
 app.use("/api/applicant", applicantRouter);
 
 const PORT = process.env.PORT || 3000;
