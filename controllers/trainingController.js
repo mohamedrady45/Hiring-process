@@ -61,36 +61,38 @@ exports.createGroup = async (req, res) => {
 
   exports.getSessionsForToday = async (req, res) => {
     try {
-      const today = moment().format('dddd').toLowerCase();  
-  
-      const groupsWithSessionsToday = await Group.find({
-        "sessions.day": today,  
-      });
-  
-      const sessionsForToday = groupsWithSessionsToday.map(group => {
-        return group.sessions
-          .filter(session => session.day === today)
-          .map(session => ({
-            groupId: group._id,         
-            sessionId: session._id,     
-            groupName: group.name,
-            category: group.category,
-            day: session.day,
-            time: session.time,
-            feedback: session.feedback || 'no feedback yet',
-          }));
-      }).flat();
-  
-      res.status(200).json({
-        message: "Sessions for today retrieved successfully",
-        data: sessionsForToday,
-      });
+        const today = moment().format('dddd').toLowerCase();  
+        const currentDate = moment();  
+
+        const groupsWithSessionsToday = await Group.find({
+            "sessions.day": today,
+            "startDate": { $gte: currentDate },  
+        });
+
+        const sessionsForToday = groupsWithSessionsToday.map(group => {
+            return group.sessions
+                .filter(session => session.day === today)
+                .map(session => ({
+                    groupId: group._id,         
+                    sessionId: session._id,     
+                    groupName: group.name,
+                    category: group.category,
+                    day: session.day,
+                    time: session.time,
+                    feedback: session.feedback || 'no feedback yet',
+                }));
+        }).flat();
+
+        res.status(200).json({
+            message: "Sessions for today retrieved successfully",
+            data: sessionsForToday,
+        });
     } catch (error) {
-      console.error('Error retrieving sessions:', error);
-      res.status(500).json({ message: 'Internal server error' });
+        console.error('Error retrieving sessions:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
-  };
-  
+};
+
 
 exports.submitFeedback = async (req, res) => {
     const { groupId, sessionId, feedback, customFeedback } = req.body;
