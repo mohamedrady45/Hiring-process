@@ -9,8 +9,16 @@ const applicantSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  cv: {
+  cv: { 
     type: String,
+    required: true,
+  },
+});
+
+const applicationSchema = new mongoose.Schema({
+  applicant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Applicant',
     required: true,
   },
   status: {
@@ -22,6 +30,24 @@ const applicantSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  interviewDate: {
+    type: Date,
+    default: new Date('2024-10-25T09:00:00Z'),
+  },
+  feedback: {
+    type: String,
+    default: 'No feedback provided',
+  },
+  meetingLink: {
+    type: String,
+  },
+  interviewer: {
+    type: String,
+    enum: ['Rady', 'Mnesy', 'Mohamed Ibrahim'],
+  },
 });
 
-module.exports = mongoose.model('Applicant', applicantSchema);
+const Applicant = mongoose.model('Applicant', applicantSchema);
+const Application = mongoose.model('Application', applicationSchema);
+
+module.exports = { Applicant, Application };

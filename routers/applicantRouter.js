@@ -1,8 +1,9 @@
-const express = require('express');
-const multer = require('multer');
+const express = require("express");
+const multer = require("multer");
 const router = express.Router();
-const applicantController = require('../controllers/applicantController');
-const { storage } = require('../config/cloudinary');
+const applicantController = require("../controllers/applicantController");
+const { storage } = require("../config/cloudinary");
+const authenticateJWT = require("../middlewares/authMiddleware");
 
 const upload = multer({ storage });
 
@@ -34,7 +35,9 @@ const upload = multer({ storage });
  *       500:
  *         description: Server error
  */
-router.post('/', upload.single('cv'), applicantController.createApplicant);
+router.post("/", upload.single("cv"), applicantController.createApplicant);
+
+router.use(authenticateJWT);
 
 /**
  * @swagger
@@ -43,52 +46,14 @@ router.post('/', upload.single('cv'), applicantController.createApplicant);
  *     summary: Get all applicants
  *     tags: [Applicants]
  *     security:
- *       - BearerAuth: []  
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: List of applicants
  *       500:
  *         description: Server error
  */
-router.get('/', applicantController.getAllApplicants);
-
-/**
- * @swagger
- * /api/applicant/{id}:
- *   put:
- *     summary: Update applicant status
- *     tags: [Applicants]
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         description: Applicant ID
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [Pending, Accepted, Rejected]
- *     security:
- *       - BearerAuth: []  
- *     responses:
- *       200:
- *         description: Applicant updated
- *       400:
- *         description: Invalid status provided
- *       404:
- *         description: Applicant not found
- *       500:
- *         description: Server error
- */
-router.put('/:id', applicantController.updateApplicantStatus);
-
+router.get("/", applicantController.getAllApplicants);
 /**
  * @swagger
  * /api/applicant/update-status:
@@ -112,7 +77,7 @@ router.put('/:id', applicantController.updateApplicantStatus);
  *                   type: string
  *                 description: Array of applicant IDs to update
  *     security:
- *       - BearerAuth: []  
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Successfully updated multiple applicants' statuses
@@ -131,6 +96,6 @@ router.put('/:id', applicantController.updateApplicantStatus);
  *       500:
  *         description: Server error
  */
-router.put('/update-status', applicantController.updateApplicantStatus);
+router.put("/update-status", applicantController.updateApplicationStatus);
 
 module.exports = router;

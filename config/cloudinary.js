@@ -8,11 +8,13 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: { 
     folder: 'cv_uploads', 
-    allowed_formats: ['pdf', 'doc', 'docx'], 
+    allowed_formats: ['pdf', 'doc', 'docx'],
+    resource_type: 'raw', 
   },
 });
 
