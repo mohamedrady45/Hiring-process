@@ -6,63 +6,57 @@ const trainingController = require("../controllers/trainingController");
  * @swagger
  * components:
  *   schemas:
- *     Session:
- *       type: object
- *       properties:
- *         day:
- *           type: string
- *           enum: ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
- *           example: "saturday"
- *         time:
- *           type: string
- *           example: "18:00"
- *         feedback:
- *           type: string
- *           enum: ['done', 'cancelled', 'postponed']
- *           example: "upcoming"
- *         customFeedback:
- *           type: string
- *           example: "no feedback yet"
- *     Group:
+ *     GroupDetails:
  *       type: object
  *       properties:
  *         name:
  *           type: string
  *           example: "Frontend Bootcamp"
- *         level:
- *           type: integer
- *           enum: [1, 2, 3, 4]
- *           example: 2
- *         startDate:
- *           type: string
- *           format: date
- *           example: "2024-01-15"
- *         numberOfWeeks:
- *           type: integer
- *           example: 12
  *         category:
  *           type: string
- *           enum: ["university", "school pst", "school diploma", "grads", "CFK", "private", "flutter", "frontend", "backend"]
  *           example: "frontend"
- *         seats:
- *           type: integer
- *           example: 20
- *         sessions:
+ *         daysAndTimes:
  *           type: array
  *           items:
- *             $ref: '#/components/schemas/Session'
- *         isFinished:
- *           type: boolean
- *           example: false
- *       required:
- *         - name
- *         - level
- *         - startDate
- *         - numberOfWeeks
- *         - category
- *         - seats
- *         - sessions
+ *             type: object
+ *             properties:
+ *               day:
+ *                 type: string
+ *                 enum: ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday"]
+ *                 example: "saturday"
+ *               time:
+ *                 type: string
+ *                 example: "6:00 PM"
+ *         level:
+ *           type: integer
+ *           example: 2
  * 
+ * /api/trainingGroup/groupsDetails:
+ *   get:
+ *     summary: Get all groups sorted by recently added
+ *     tags: [Training Group]
+ *     responses:
+ *       200:
+ *         description: Groups retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Groups retrieved successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/GroupDetails'
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/groupsDetails', trainingController.getGroupsWithDetails);
+
+/**
+ * @swagger
  * /api/trainingGroup/createGroup:
  *   post:
  *     summary: Create a new training group
@@ -162,7 +156,6 @@ router.post('/createGroup', trainingController.createGroup);
  */
 router.get('/sessionsToday', trainingController.getSessionsForToday);
 
-
 /**
  * @swagger
  * /api/trainingGroup/submitFeedback:
@@ -207,5 +200,6 @@ router.get('/sessionsToday', trainingController.getSessionsForToday);
  *       500:
  *         description: Internal server error
  */
-router.post("/submitFeedback",trainingController.submitFeedback)
+router.post("/submitFeedback", trainingController.submitFeedback);
+
 module.exports = router;

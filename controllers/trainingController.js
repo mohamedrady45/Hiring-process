@@ -22,6 +22,75 @@ exports.saveSchedule = async (req, res) => {
 };
 
 
+exports.getCoachScheduleByEmail = async (req, res) => {
+  try {
+    const { email } = req.query;   
+    const coachSchedule = await CoachSchedule.findOne({ email });
+
+    if (!coachSchedule) {
+      return res.status(404).json({
+        message: "Schedule not found for the provided email",
+      });
+    }
+
+    const calculateIntervals = (times) => {
+      return times.map((time) => {
+        const [startHour, startMinute] = time.startTime.split(':').map(Number);
+        const [endHour, endMinute] = time.endTime.split(':').map(Number);
+
+        const start = `${startHour % 12 || 12}:${startMinute.toString().padStart(2, '0')} ${startHour >= 12 ? 'PM' : 'AM'}`;
+        const end = `${endHour % 12 || 12}:${endMinute.toString().padStart(2, '0')} ${endHour >= 12 ? 'PM' : 'AM'}`;
+        return `${start} - ${end}`;
+      });
+    };
+
+    const response = {
+      email: coachSchedule.email,
+      schedule: {
+        saturday: {
+          selected: coachSchedule.schedule.saturday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.saturday.times),
+        },
+        sunday: {
+          selected: coachSchedule.schedule.sunday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.sunday.times),
+        },
+        monday: {
+          selected: coachSchedule.schedule.monday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.monday.times),
+        },
+        tuesday: {
+          selected: coachSchedule.schedule.tuesday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.tuesday.times),
+        },
+        wednesday: {
+          selected: coachSchedule.schedule.wednesday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.wednesday.times),
+        },
+        thursday: {
+          selected: coachSchedule.schedule.thursday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.thursday.times),
+        },
+        friday: {
+          selected: coachSchedule.schedule.friday.selected,
+          intervals: calculateIntervals(coachSchedule.schedule.friday.times),
+        },
+      },
+    };
+
+    res.status(200).json({
+      message: "Schedule retrieved successfully",
+      data: response,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "An error occurred while retrieving the schedule",
+    });
+  }
+};
+
+
 exports.createGroup = async (req, res) => {
     const { name, level, startDate, numberOfWeeks, category, seats, initialSessions } = req.body;
   
@@ -144,3 +213,30 @@ exports.finishGroup = async (req, res) => {
       res.status(500).json({ message: 'Internal server error' });
     }
   };
+
+  exports.getGroupsWithDetails = async (req, res) => {
+    try {
+      const groups = await Group.find();
+  
+      const groupDetails = groups.map(group => ({
+        name: group.name,
+        category: group.category,
+        daysAndTimes: group.sessions.map(session => ({
+          day: session.day,
+          time: `${session.time.split(':')[0] % 12 || 12}:${session.time.split(':')[1]} ${
+            session.time.split(':')[0] >= 12 ? 'PM' : 'AM'
+          }`,
+        })), 
+        level: group.level,
+      }));
+  
+      res.status(200).json({
+        message: "Groups retrieved successfully",
+        data: groupDetails,
+      });
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
