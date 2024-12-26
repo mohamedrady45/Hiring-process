@@ -134,13 +134,14 @@ exports.createGroup = async (req, res) => {
         const currentDate = moment();  
 
         const groupsWithSessionsToday = await Group.find({
-            "sessions.day": today,
-            "startDate": { $gte: currentDate },  
+            "sessions.day": today,             
+            "startDate": { $gte: currentDate }, 
+            "isFinished": false,               
         });
 
         const sessionsForToday = groupsWithSessionsToday.map(group => {
             return group.sessions
-                .filter(session => session.day === today)
+                .filter(session => session.day === today) 
                 .map(session => ({
                     groupId: group._id,         
                     sessionId: session._id,     
@@ -150,7 +151,14 @@ exports.createGroup = async (req, res) => {
                     time: session.time,
                     feedback: session.feedback || 'no feedback yet',
                 }));
-        }).flat();
+        }).flat(); 
+
+        if (sessionsForToday.length === 0) {
+            return res.status(200).json({
+                message: "No sessions for today",
+                data: [],
+            });
+        }
 
         res.status(200).json({
             message: "Sessions for today retrieved successfully",
@@ -161,6 +169,8 @@ exports.createGroup = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+
 
 
 exports.submitFeedback = async (req, res) => {
@@ -195,7 +205,7 @@ exports.submitFeedback = async (req, res) => {
 
 exports.finishGroup = async (req, res) => {
     const { id } = req.params;
-  
+   console.log("Received ID:", id);
     try {
       const group = await Group.findByIdAndUpdate(
         id,
@@ -240,4 +250,57 @@ exports.finishGroup = async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   };
+  exports.getGroupById = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const group = await Group.findById(id);
+  
+      if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+      }
+  
+      const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  
+      const formattedSessions = group.sessions.map((session, index) => {
+        const startDate = new Date(group.startDate);
+        const sessionDayIndex = weekdays.indexOf(session.day.toLowerCase());
+  
+        if (sessionDayIndex === -1) {
+          console.warn(`Invalid session day '${session.day}' for session ${index + 1}`);
+          return null;
+        }
+  
+        const startDayIndex = startDate.getDay();
+        const dayOffset = (sessionDayIndex - startDayIndex + 7) % 7; 
+        const sessionDate = new Date(startDate);
+        sessionDate.setDate(startDate.getDate() + dayOffset + index * 7); 
+  
+        return {
+          id: session._id || null,
+          sessionNumber: index + 1,
+          sessionDate: sessionDate.toISOString(), 
+          sessionDay: weekdays[sessionDate.getDay()], 
+          time: session.time,
+          feedback: session.feedback,
+          customFeedback: session.customFeedback,
+        };
+      }).filter(Boolean); 
+  
+      const formattedGroup = {
+        name: group.name,
+        category: group.category,
+        level: group.level,
+        startDate: group.startDate,
+        sessions: formattedSessions,
+      };
+  
+      res.status(200).json(formattedGroup);
+    } catch (error) {
+      console.error(`Error retrieving group with ID ${req.params.id}:`, error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+  
+  
+  
   

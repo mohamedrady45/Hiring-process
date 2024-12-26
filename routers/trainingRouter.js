@@ -30,7 +30,43 @@ const trainingController = require("../controllers/trainingController");
  *         level:
  *           type: integer
  *           example: 2
- * 
+ *     Session:
+ *       type: object
+ *       properties:
+ *         day:
+ *           type: string
+ *           enum: ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday"]
+ *           example: "monday"
+ *         time:
+ *           type: string
+ *           example: "10:00 AM"
+ *         feedback:
+ *           type: string
+ *           enum: ["done", "cancelled", "postponed"]
+ *           example: "done"
+ *         customFeedback:
+ *           type: string
+ *           example: "Great session, learned a lot!"
+ *     Group:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         category:
+ *           type: string
+ *         level:
+ *           type: integer
+ *         startDate:
+ *           type: string
+ *           format: date
+ *         sessions:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Session'
+ */
+
+/**
+ * @swagger
  * /api/trainingGroup/groupsDetails:
  *   get:
  *     summary: Get all groups sorted by recently added
@@ -201,5 +237,101 @@ router.get('/sessionsToday', trainingController.getSessionsForToday);
  *         description: Internal server error
  */
 router.post("/submitFeedback", trainingController.submitFeedback);
+
+/**
+ * @swagger
+ * /api/trainingGroup/finishGroup/{id}:
+ *   put:
+ *     summary: Finish a training group
+ *     tags: [Training Group]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the group to finish
+ *     responses:
+ *       200:
+ *         description: Group finished successfully
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/finishGroup/:id", trainingController.finishGroup);
+
+/**
+ * @swagger
+ * /api/trainingGroup/getGroup/{id}:
+ *   get:
+ *     summary: Get a specific training group by ID
+ *     tags: [Training Group]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the group to retrieve
+ *     responses:
+ *       200:
+ *         description: Group retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Group'
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ * components:
+ *   schemas:
+ *     Group:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Name of the training group
+ *         category:
+ *           type: string
+ *           description: Category of the training group
+ *         level:
+ *           type: string
+ *           description: Level of the training group
+ *         startDate:
+ *           type: string
+ *           format: date-time
+ *           description: Start date of the training group
+ *         sessions:
+ *           type: array
+ *           description: List of sessions in the training group
+ *           items:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: ID of the session
+ *               sessionNumber:
+ *                 type: integer
+ *                 description: The session number in the group
+ *               sessionDates:
+ *                 type: array
+ *                 description: List of dates for this session
+ *                 items:
+ *                   type: string
+ *                   format: date-time
+ *               time:
+ *                 type: string
+ *                 description: Time of the session
+ *               feedback:
+ *                 type: string
+ *                 description: General feedback for the session
+ *               customFeedback:
+ *                 type: string
+ *                 description: Custom feedback for the session
+ */
+
+router.get("/getGroup/:id", trainingController.getGroupById);
 
 module.exports = router;
