@@ -219,6 +219,7 @@ exports.finishGroup = async (req, res) => {
       const groups = await Group.find();
   
       const groupDetails = groups.map(group => ({
+        id : group._id,
         name: group.name,
         category: group.category,
         daysAndTimes: group.sessions.map(session => ({
