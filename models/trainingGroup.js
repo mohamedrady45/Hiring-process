@@ -40,16 +40,20 @@ const groupSchema = new mongoose.Schema({
         required: true,
         match: /^([0-9]{2}):([0-9]{2})$/,
       },
+      sessionDate: {
+        type: Date,  
+        required: true,
+      },
       feedback: {
         type: String,
-        enum: ['done', 'cancelled', 'postponed' , 'upcoming'],
+        enum: ['done', 'cancelled', 'postponed', 'upcoming'],
         default: 'upcoming',
       },
       customFeedback: {
         type: String,
         default: 'no feedback yet',
       },
-    }
+    },
   ],
   isFinished: {
     type: Boolean,

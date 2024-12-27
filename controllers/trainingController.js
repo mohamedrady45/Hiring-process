@@ -1,5 +1,8 @@
 const CoachSchedule = require('../models/coachSchedule');
 const Group = require('../models/trainingGroup')
+const mongoose = require('mongoose');
+const schedule = require('node-schedule');
+
 exports.saveSchedule = async (req, res) => {
   const { email, timeSchedule } = req.body;
 
@@ -92,56 +95,89 @@ exports.getCoachScheduleByEmail = async (req, res) => {
 
 
 exports.createGroup = async (req, res) => {
-    const { name, level, startDate, numberOfWeeks, category, seats, initialSessions } = req.body;
-  
-    try {
-      if (!name || !level || !startDate || !numberOfWeeks || !category || !seats || !initialSessions) {
-        return res.status(400).json({ message: 'All fields are required' });
-      }
-  
-      const sessions = initialSessions.map(session => ({
-        day: session.day,
-        time: session.time,
-        feedback: session.feedback || 'upcoming',
-        customFeedback: 'no feedback yet',
-      }));
-  
-      const newGroup = new Group({
-        name,
-        level,
-        startDate,
-        numberOfWeeks,
-        category,
-        seats,
-        sessions,
-        isFinished: false,
-      });
-  
-      await newGroup.save();
-  
-      res.status(201).json({ message: 'Group created successfully', data: newGroup });
-    } catch (error) {
-      console.error('Error creating group:', error);
-      res.status(500).json({ message: 'Internal server error' });
+  const { name, level, startDate, numberOfWeeks, category, seats, initialSessions } = req.body;
+
+  try {
+    if (!name || !level || !startDate || !numberOfWeeks || !category || !seats || !initialSessions) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
-  };
+
+    const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const start = new Date(startDate);
+
+    const sessions = [];
+    const currentDate = new Date();  
+
+    for (let week = 0; week < numberOfWeeks; week++) {
+      for (const session of initialSessions) {
+        const sessionDayIndex = weekdays.indexOf(session.day.toLowerCase());
+
+        if (sessionDayIndex === -1) {
+          return res.status(400).json({ message: `Invalid day '${session.day}' provided` });
+        }
+
+        const sessionTime24 = convertTo24Hour(session.time);  
+
+        const startDayIndex = start.getDay();
+        const dayOffset = (sessionDayIndex - startDayIndex + 7) % 7; 
+        const sessionDate = new Date(start);
+        sessionDate.setDate(start.getDate() + dayOffset + week * 7);  
+
+        const isPast = sessionDate < currentDate;  
+
+        let feedback = 'upcoming';  
+        if (isPast) {
+          feedback = 'done';  
+        }
+
+        sessions.push({
+          day: session.day,
+          time: sessionTime24, 
+          sessionDate: sessionDate,  
+          feedback: feedback,
+          customFeedback: 'no feedback yet',
+        });
+      }
+    }
+
+    const newGroup = new Group({
+      name,
+      level,
+      startDate,
+      numberOfWeeks,
+      category,
+      seats,
+      sessions,
+      isFinished: false,
+    });
+
+    await newGroup.save();
+
+    res.status(201).json({ message: 'Group created successfully', data: newGroup });
+  } catch (error) {
+    console.error('Error creating group:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
   
   const moment = require('moment'); 
 
   exports.getSessionsForToday = async (req, res) => {
     try {
-        const today = moment().format('dddd').toLowerCase();  
+        const today = moment().format('YYYY-MM-DD');  
         const currentDate = moment();  
 
         const groupsWithSessionsToday = await Group.find({
-            "sessions.day": today,             
-            "startDate": { $gte: currentDate }, 
+            "sessions.sessionDate": today,  
+            "startDate": { $lte: currentDate },
             "isFinished": false,               
         });
 
         const sessionsForToday = groupsWithSessionsToday.map(group => {
             return group.sessions
-                .filter(session => session.day === today) 
+                .filter(session => moment(session.sessionDate).format('YYYY-MM-DD') === today)  
                 .map(session => ({
                     groupId: group._id,         
                     sessionId: session._id,     
@@ -151,7 +187,7 @@ exports.createGroup = async (req, res) => {
                     time: session.time,
                     feedback: session.feedback || 'no feedback yet',
                 }));
-        }).flat(); 
+        }).flat();
 
         if (sessionsForToday.length === 0) {
             return res.status(200).json({
@@ -169,6 +205,7 @@ exports.createGroup = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
 
 
 
@@ -301,6 +338,52 @@ exports.finishGroup = async (req, res) => {
     }
   };
   
-  
-  
-  
+
+const convertTo24Hour = (time12h) => {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+
+    if (modifier === 'PM' && hours !== '12') {
+        hours = String(parseInt(hours, 10) + 12);
+    } else if (modifier === 'AM' && hours === '12') {
+        hours = '00';
+    }
+
+    return `${hours}:${minutes}`;
+};
+
+exports.editGroup = async (req, res) => {
+    const { id: groupId } = req.params;
+    const updatedDetails = req.body;
+
+    console.log("Received ID:", groupId);
+
+    try {
+        if (!mongoose.Types.ObjectId.isValid(groupId)) {
+            return res.status(400).json({ message: 'Invalid group ID' });
+        }
+
+        if (updatedDetails.sessions) {
+            updatedDetails.sessions = updatedDetails.sessions.map(session => ({
+                day: session.day,
+                time: convertTo24Hour(session.time), 
+                feedback: session.feedback || 'upcoming',
+                customFeedback: session.customFeedback || 'no feedback yet',
+            }));
+        }
+
+        const updatedGroup = await Group.findByIdAndUpdate(groupId, updatedDetails, {
+            new: true, 
+            runValidators: true, 
+        });
+
+        if (!updatedGroup) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        res.status(200).json({ message: 'Group updated successfully', data: updatedGroup });
+    } catch (error) {
+        console.error('Error updating group:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

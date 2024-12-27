@@ -334,4 +334,57 @@ router.put("/finishGroup/:id", trainingController.finishGroup);
 
 router.get("/getGroup/:id", trainingController.getGroupById);
 
+/**
+ * @swagger
+ * /api/trainingGroup/editGroup/{id}:
+ *   put:
+ *     summary: Edit details of an existing training group
+ *     tags: [Training Group]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the group to edit
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Bootcamp Name"
+ *               category:
+ *                 type: string
+ *                 example: "backend"
+ *               level:
+ *                 type: integer
+ *                 example: 3
+ *               sessions:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Session'
+ *     responses:
+ *       200:
+ *         description: Group updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Group updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Group'
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/editGroup/:id", trainingController.editGroup);
+
 module.exports = router;
