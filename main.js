@@ -5,6 +5,7 @@ const applicantRouter = require("./routers/applicantRouter");
 const trainingRouter = require("./routers/trainingRouter");
 const scheduleRouter = require("./routers/scheduleRouter");
 const userRouter = require("./routers/userRouter");
+const enrollmentRouter = require("./routers/enrollmentsRouter");
 const { swaggerUi, swaggerDocs } = require("./config/swagger");
 const cors = require("cors");
 
@@ -30,6 +31,7 @@ app.use("/api/user", userRouter);
 app.use("/api/schedule", scheduleRouter);
 app.use("/api/trainingGroup", trainingRouter);
 app.use("/api/applicant", applicantRouter);
+app.use("api/enrollments", enrollmentRouter);
 
 // Start Server
 const PORT = process.env.PORT || 3000;

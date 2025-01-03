@@ -2,7 +2,7 @@ const CoachSchedule = require('../models/coachSchedule');
 const Group = require('../models/trainingGroup')
 const mongoose = require('mongoose');
 const schedule = require('node-schedule');
-const Coach = require('./models/coachSchema');
+const Coach = require('../models/coachSchema');
 
 
 exports.saveSchedule = async (req, res) => {

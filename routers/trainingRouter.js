@@ -65,6 +65,7 @@ const trainingController = require("../controllers/trainingController");
  *             $ref: '#/components/schemas/Session'
  */
 
+
 /**
  * @swagger
  * /api/trainingGroup/groupsDetails:
@@ -641,7 +642,8 @@ router.put("/resumeGroup/:id", trainingController.resumeGroup);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: 'Group not found' or 'Coach not found'
+ *                   example: 'Group not found or Coach not found'
+
  *       500:
  *         description: Internal Server Error
  *         content:
@@ -654,6 +656,6 @@ router.put("/resumeGroup/:id", trainingController.resumeGroup);
  *                   example: 'Internal server error'
  */
 
-router.post('/assign-group-to-coach', assignGroupToCoach);
+router.post('/assign-group-to-coach', trainingController.assignGroupToCoach);
 
 module.exports = router;

@@ -69,9 +69,53 @@ const groupSchema = new mongoose.Schema({
   resumeDate: {
     type: Date,
   },
+  requests: [
+    {
+      studentName: {
+        type: String,
+        required: true,
+      },
+      studentEmail: {
+        type: String,
+        required: true,
+      },
+      studentPhone: {
+        type: String,
+        required: true,
+      },
+      paid: {
+        type: Boolean,
+        default: false, // لو مش مدفوع يبقى false
+      },
+      requestDate: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   pauseEndDate: {
     type: Date, 
   },
+  enrolledStudents: [
+    {
+      studentName: {
+        type: String,
+        required: true,
+      },
+      studentEmail: {
+        type: String,
+        required: true,
+      },
+      studentPhone: {
+        type: String,
+        required: true,
+      },
+      enrolledDate: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 }, {
   timestamps: true,
 });
