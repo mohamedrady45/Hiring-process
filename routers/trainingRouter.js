@@ -90,7 +90,6 @@ const trainingController = require("../controllers/trainingController");
  *         description: Internal server error
  */
 router.get('/groupsDetails', trainingController.getGroupsWithDetails);
-
 /**
  * @swagger
  * /api/trainingGroup/createGroup:
@@ -104,9 +103,6 @@ router.get('/groupsDetails', trainingController.getGroupsWithDetails);
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
- *                 example: "Frontend Bootcamp"
  *               level:
  *                 type: integer
  *                 example: 2
@@ -124,6 +120,9 @@ router.get('/groupsDetails', trainingController.getGroupsWithDetails);
  *               seats:
  *                 type: integer
  *                 example: 20
+ *               classNumber:
+ *                 type: integer
+ *                 example: 1
  *               initialSessions:
  *                 type: array
  *                 items:
@@ -147,6 +146,7 @@ router.get('/groupsDetails', trainingController.getGroupsWithDetails);
  *         description: Internal server error
  */
 router.post('/createGroup', trainingController.createGroup);
+
 
 /**
  * @swagger
@@ -191,6 +191,95 @@ router.post('/createGroup', trainingController.createGroup);
  *         description: Internal server error
  */
 router.get('/sessionsToday', trainingController.getSessionsForToday);
+
+/**
+ * @swagger
+ * /api/trainingGroup/sessionsTomorrow:
+ *   get:
+ *     summary: Get all training groups that have sessions tomorrow
+ *     tags: [Training Group]
+ *     responses:
+ *       200:
+ *         description: Sessions for tomorrow retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Sessions for tomorrow retrieved successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       groupName:
+ *                         type: string
+ *                         example: "Frontend Bootcamp"
+ *                       category:
+ *                         type: string
+ *                         example: "frontend"
+ *                       day:
+ *                         type: string
+ *                         enum: ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday"]
+ *                         example: "sunday"
+ *                       time:
+ *                         type: string
+ *                         example: "18:00"
+ *                       feedback:
+ *                         type: string
+ *                         enum: ["done", "cancelled", "postponed"]
+ *                         example: "no feedback yet"
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/sessionsTomorrow', trainingController.getSessionsForTomorrow);
+
+/**
+ * @swagger
+ * /api/trainingGroup/sessionsYesterday:
+ *   get:
+ *     summary: Get all training groups that had sessions yesterday
+ *     tags: [Training Group]
+ *     responses:
+ *       200:
+ *         description: Sessions for yesterday retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Sessions for yesterday retrieved successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       groupName:
+ *                         type: string
+ *                         example: "Frontend Bootcamp"
+ *                       category:
+ *                         type: string
+ *                         example: "frontend"
+ *                       day:
+ *                         type: string
+ *                         enum: ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday", "friday"]
+ *                         example: "friday"
+ *                       time:
+ *                         type: string
+ *                         example: "18:00"
+ *                       feedback:
+ *                         type: string
+ *                         enum: ["done", "cancelled", "postponed"]
+ *                         example: "no feedback yet"
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/sessionsYesterday', trainingController.getSessionsForYesterday);
+
 
 /**
  * @swagger
@@ -259,7 +348,7 @@ router.post("/submitFeedback", trainingController.submitFeedback);
  *       500:
  *         description: Internal server error
  */
-router.put("/finishGroup/:id", trainingController.finishGroup);
+router.put("/finishGroup/:id", trainingController.toggleGroupStatus);
 
 /**
  * @swagger
@@ -386,5 +475,185 @@ router.get("/getGroup/:id", trainingController.getGroupById);
  *         description: Internal server error
  */
 router.put("/editGroup/:id", trainingController.editGroup);
+
+/**
+ * @swagger
+ * /api/trainingGroup/pauseGroup/{id}:
+ *   put:
+ *     summary: Pause a training group and reschedule its sessions
+ *     tags: [Training Group]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the group to pause
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-01-15"
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-01-22"
+ *     responses:
+ *       200:
+ *         description: Group paused and sessions rescheduled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Group paused and sessions rescheduled successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Group'
+ *       400:
+ *         description: Invalid input or date range
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/pauseGroup/:id", trainingController.pauseGroup);
+
+/**
+ * @swagger
+ * /api/trainingGroup/resumeGroup/{id}:
+ *   put:
+ *     summary: Resume a paused training group and reschedule its sessions
+ *     tags: [Training Group]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the group to resume
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               resumeDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-01-25"
+ *     responses:
+ *       200:
+ *         description: Group resumed and sessions rescheduled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Group resumed and sessions rescheduled successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Group'
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Group not found
+ *       500:
+ *         description: Internal server error
+ */
+router.put("/resumeGroup/:id", trainingController.resumeGroup);
+
+
+/**
+ * @swagger
+ * /api/trainingGroup/assignGroupToCoach:
+ *   post:
+ *     summary: Assign a group to a coach and lock the coach's available slots.
+ *     description: This endpoint assigns a training group to a coach and locks the time slots in the coach's schedule for the group sessions.
+ *     operationId: assignGroupToCoach
+ *     tags:
+ *       - Group
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - coachEmail
+ *               - groupId
+ *               - duration
+ *             properties:
+ *               coachEmail:
+ *                 type: string
+ *                 description: Email of the coach to assign the group to.
+ *               groupId:
+ *                 type: string
+ *                 description: The ID of the group to be assigned.
+ *               duration:
+ *                 type: integer
+ *                 description: Duration of the session in hours to be locked in the coach's schedule.
+ *     responses:
+ *       200:
+ *         description: Successfully assigned the group and updated the coach's schedule.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Group successfully assigned to coach and schedule updated'
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     group:
+ *                       type: object
+ *                       description: The group data assigned to the coach.
+ *                     coachSchedule:
+ *                       type: object
+ *                       description: The updated coach schedule after locking the time slots.
+ *       400:
+ *         description: Bad Request (Missing fields or no available slots)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'No available slot for Monday at 06:00 for 2 hours'
+ *       404:
+ *         description: Group or Coach not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Group not found' or 'Coach not found'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: 'Internal server error'
+ */
+
+router.post('/assign-group-to-coach', assignGroupToCoach);
 
 module.exports = router;

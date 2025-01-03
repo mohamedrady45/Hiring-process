@@ -7,11 +7,12 @@ const TimeSlotSchema = new mongoose.Schema({
 
 const DayScheduleSchema = new mongoose.Schema({
   selected: { type: Boolean, required: true },
-  times: [TimeSlotSchema] 
+  times: [TimeSlotSchema], 
+  lockedTimes: [TimeSlotSchema] 
 });
 
 const CoachScheduleSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true }, 
+  email: { type: String, required: true, unique: true },
   schedule: {
     saturday: { type: DayScheduleSchema, required: true },
     sunday: { type: DayScheduleSchema, required: true },

@@ -42,7 +42,7 @@ const groupSchema = new mongoose.Schema({
       },
       sessionDate: {
         type: Date,  
-        required: true,
+        required: false,
       },
       feedback: {
         type: String,
@@ -58,6 +58,19 @@ const groupSchema = new mongoose.Schema({
   isFinished: {
     type: Boolean,
     default: false,
+  },
+  paused: {
+    type: Boolean,
+    default: false,
+  },
+  pausedDate: {
+    type: Date,
+  },
+  resumeDate: {
+    type: Date,
+  },
+  pauseEndDate: {
+    type: Date, 
   },
 }, {
   timestamps: true,
